@@ -21,3 +21,5 @@ We follow the exact hyperparameter settings described [here](https://github.com/
 + To obtain the baseline (self-trained) CaGAT model, use `python CaGCN.py --model <GAT/ML_GAT> --hidden 8 --dataset <Cora/Citeseer/Pubmed> --labelrate <labels/class> --dropout 0.6 --lr 0.005 --stage 4 --lr_for_cal 0.001 --l2_for_cal 5e-3 --epoch_for_st 200 --threshold 0.8`.
 + To obtain the FASTRAIN-CaGAT model, use `python CaGCN.py --model GAT --hidden 8 --dataset <Cora/Citeseer/Pubmed> --labelrate <labels/class> --dropout 0.6 --lr 0.005 --stage 4 --lr_for_cal 0.001 --l2_for_cal 5e-3 --epoch_for_st 200 --threshold 0.8`.
 
+Here, GCN and GAT refer to the 2-layer models, while ML_GCN and ML_GAT refer to 3-layer models.
+
