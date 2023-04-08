@@ -7,19 +7,21 @@ from dgl.data import CiteseerGraphDataset
 from dgl.data import CoraGraphDataset
 from dgl.data import PubmedGraphDataset
 from dgl.data import CoraFullDataset
-from models import GCN, GAT, SpGAT, GCN_T, GraphSAGE, ML_GCN, ML_SpGAT
+from dgl.data.fraud import FraudAmazonDataset
+import dgl
+from models import GCN, GAT, SpGAT, GCN_T, GraphSAGE, deepGCN, deepSpGAT
 
 
 
 def load_data(dataset ,labelrate, os_path=''):
     if dataset == 'Cora':
-        data = CoraGraphDataset()
+        data = CoraGraphDataset(verbose=False)
     elif dataset == 'Citeseer':
-        data = CiteseerGraphDataset()
+        data = CiteseerGraphDataset(verbose=False)
     elif dataset == 'Pubmed':
-        data = PubmedGraphDataset()
+        data = PubmedGraphDataset(verbose=False)
     elif dataset == 'CoraFull':
-        data = CoraFullDataset()
+        data = CoraFullDataset(verbose=False)
 
     g = data[0]
     features = g.ndata['feat']
@@ -29,21 +31,15 @@ def load_data(dataset ,labelrate, os_path=''):
         train_mask = g.ndata['train_mask']
         val_mask = g.ndata['val_mask']
         test_mask = g.ndata['test_mask']
-        if labelrate != 20:
-         if labelrate > 20:
-            labelrate -= 20
-            nclass = data.num_classes
-            start = int(torch.where(val_mask==True)[0][-1] + 1)
-            train_mask[start:start+labelrate*nclass] = True
-         else:
-            nclass = data.num_classes
-            train_mask[:] = False
+        nclass = data.num_classes
+        train_mask[:] = False
+        val_mask[:] = False
 
-            # Change here to get a different train-test split. Coverage from this default split is probably poor, so may need to look at other splits for better accuracy at low label rates.
-            for i in range(nclass):
-              for j in range(labelrate):
-                 start = int(torch.where(labels==i)[0][3*j])
-                 train_mask[start] = True                                
+        # Change here to get a different train-test split. Coverage from this default split is probably poor, so may need to look at other splits for better accuracy at low label rates.
+        for i in range(nclass):
+           for j in range(labelrate):
+              start = int(torch.where(labels==i)[0][3*j])
+              train_mask[start] = True                                
         
     else:
         datalength = labels.size()
@@ -70,6 +66,7 @@ def load_data(dataset ,labelrate, os_path=''):
             val_index = list(map(int, val_index))
             val_mask[0][val_index] = 1
             val_mask = val_mask[0]
+    #g = dgl.to_homogeneous(g)
     nxg = g.to_networkx()
     adj = nx.to_scipy_sparse_matrix(nxg, dtype=np.float)
 
@@ -123,25 +120,25 @@ def get_models(args, nfeat, nclass, cal_model=None, scaling_model=False):
     else:
         nhid = args.hidden
         model_name = args.model
-    if model_name == 'GCN':
+    if model_name == 'shallowGCN' or model_name == 'GCN':
         model = GCN(nfeat=nfeat,
                     nhid=nhid,
                     nclass=nclass,
                     dropout=args.dropout)
-    elif model_name == 'ML_GCN':
-        model = ML_GCN(nfeat=nfeat,
+    elif model_name == 'deepGCN':
+        model = deepGCN(nfeat=nfeat,
                     nhid=nhid,
                     nclass=nclass,
                     dropout=args.dropout)
-    elif model_name == 'GAT':
+    elif model_name == 'shallowGAT' or model_name == 'GAT':
         model = SpGAT(nfeat=nfeat,
                       nhid=args.hidden,
                       nclass=nclass,
                       dropout=args.dropout,
                       nheads=args.nb_heads,
                       alpha=args.alpha)
-    elif model_name == 'ML_GAT':
-        model = ML_SpGAT(nfeat=nfeat,
+    elif model_name == 'deepGAT':
+        model = deepSpGAT(nfeat=nfeat,
                       nhid=args.hidden,
                       nclass=nclass,
                       dropout=args.dropout,

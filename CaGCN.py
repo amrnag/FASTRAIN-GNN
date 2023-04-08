@@ -161,21 +161,6 @@ def generate_pseudo_label(output, idx_train, pseudo_labels, idx_test, act_labels
     return idx_train, pseudo_labels 
 
 @torch.no_grad()
-def pgp(adj, model, features, idx_train):
-    adj = adj.to_dense()
-    output = model(features, adj)
-    confidence, pred_label = get_confidence(output)
-    train_index = torch.where(idx_train==True)[0]
-    for i in train_index: 
-        edges = torch.where(adj[i] != 0)[0]
-        for edge in edges:
-          if edge in train_index:
-            if pred_label[i] != pred_label[edge]:
-               adj[i,edge] = 0
-    adj = adj.to_sparse()
-    return adj
-
-@torch.no_grad()
 def randomedge_sampler(train_adj, percent):
   nnz = train_adj._nnz() 
   perm = np.random.permutation(nnz)   

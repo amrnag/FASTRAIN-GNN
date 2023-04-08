@@ -210,6 +210,7 @@ def main(dataset):
       else:
         idx_test[i] = True
     nclass = labels.max().item() + 1
+    nsamples = labels.size()[0]
 
     pseudo_labels = labels.clone()
     pseudo_labels = pseudo_labels.to(device)
@@ -223,17 +224,17 @@ def main(dataset):
     for stage in range(args.stage):
         print("########################### Stage:", stage + 1, "Training set size:", labels[idx_train].size()[0], "###########################")  
 
-        # DSR       
-        if ((args.dataset != 'Pubmed' and (labels[idx_train].size()[0]/nclass) < 16) or (args.dataset == 'Pubmed' and (labels[idx_train].size()[0]/nclass) < 64)) and 'ML' not in args.model:
-          args.model = 'ML_' + args.model
+        # Dynamic Sampling and Dynamic Regularization       
+        if labels[idx_train].size()[0] < (0.025 * nsamples):
+          args.model = 'deep' + model_name
           if labels[idx_train].size()[0] / nclass == 1:
             sample_rate = 1.0
           else:
             sample_rate = 0.9
         else:
-          args.model = model_name
+          args.model = 'shallow' + model_name
           sample_rate = 0.8
-      
+
         n_time += 1
         np.random.seed(seed)
         torch.manual_seed(seed)
@@ -259,7 +260,7 @@ def main(dataset):
         curr_cal_loss = func_scaling(adj, features, pseudo_labels, labels, nclass, 
                          idx_train, idx_test, model_b_scaling, model_a_scaling, args.epoch_for_st, True)
    
-        ######  self-training to find pesudo label  ########
+        ######  self-training to find pseudo label  ########
         state_dict = torch.load(model_a_scaling)
         model = CaGCN(args, nclass, base_model=get_models(args, features.shape[1], nclass))
         model.load_state_dict(state_dict)
@@ -268,7 +269,7 @@ def main(dataset):
  
         output = model(features, adj)
 
-        # Generate pseudolabels and do SPF
+        # Generate pseudolabels and perform Sampling-based Pseudolabel Filtering
         idx_train, pseudo_labels = generate_pseudo_label_and_do_spf(output, idx_train, pseudo_labels, idx_test,  labels, adj.clone(), model, features)
 
         # Testing
@@ -276,7 +277,7 @@ def main(dataset):
                         model_b_scaling, model_a_scaling)
         acc_test_times_list.append(acc_test)
 
-        # PGP
+        # Progressive Graph Pruning
         adj = pgp(adj.clone(), model, features, idx_train)
 
 if __name__ == '__main__':

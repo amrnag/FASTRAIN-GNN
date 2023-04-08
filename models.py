@@ -18,9 +18,9 @@ class GCN(nn.Module):
         x = self.gc2(x, adj)
         return x
 
-class ML_GCN(nn.Module):
+class deepGCN(nn.Module):
     def __init__(self, nfeat, nhid, nclass, dropout):
-        super(ML_GCN, self).__init__()
+        super(deepGCN, self).__init__()
         self.gc1 = GraphConvolution(nfeat, nhid)
         self.gc2 = GraphConvolution(nhid, nclass)
         self.gc3 =  GraphConvolution(nhid, nhid)
@@ -102,10 +102,10 @@ class SpGAT(nn.Module):
         x = F.elu(self.out_att(x, adj))
         return x
 
-class ML_SpGAT(nn.Module):
+class deepSpGAT(nn.Module):
     def __init__(self, nfeat, nhid, nclass, dropout, alpha, nheads):
         """Sparse version of GAT."""
-        super(ML_SpGAT, self).__init__()
+        super(deepSpGAT, self).__init__()
         self.dropout = dropout
 
         self.attentions = [SpGraphAttentionLayer(nfeat,
