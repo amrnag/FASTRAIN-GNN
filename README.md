@@ -1,5 +1,5 @@
 # FASTRAIN-GNN: Fast and Accurate Self-training for Graph Neural Networks
-This repository contains the source code for FASTRAIN-GNN: Fast and Accurate Self-training for Graph Neural Networks. This repository builds on the implementation of [CaGCN](https://github.com/BUPT-GAMMA/CaGCN).
+This repository contains the source code for [FASTRAIN-GNN: Fast and Accurate Self-training for Graph Neural Networks](https://openreview.net/forum?id=1IYJfwJtjQ). This repository builds on the implementation of [CaGCN](https://github.com/BUPT-GAMMA/CaGCN).
 
 ## Dependencies
 + python == 3.8.8
